@@ -4,31 +4,50 @@ import com.example.tickets.TicketService;
 import java.util.List;
 
 /**
- * Starter demo that shows why mutability is risky.
- *
- * After refactor:
- * - direct mutation should not compile (no setters)
- * - external modifications to tags should not affect the ticket
- * - service "updates" should return a NEW ticket instance
+ * Demonstrates immutability:
+ * - Building a ticket
+ * - "Updating" by creating a new instance (original stays unchanged)
+ * - Tags list is not mutable from outside
  */
 public class TryIt {
 
     public static void main(String[] args) {
         TicketService service = new TicketService();
 
-        IncidentTicket t = service.createTicket("TCK-1001", "reporter@example.com", "Payment failing on checkout");
-        System.out.println("Created: " + t);
+        // 1. Create a ticket via the service
+        IncidentTicket original = service.createTicket(
+                "TCK-1001",
+                "reporter@example.com",
+                "Payment failing on checkout"
+        );
+        System.out.println("Created : " + original);
 
-        // Demonstrate post-creation mutation through service
-        service.assign(t, "agent@example.com");
-        service.escalateToCritical(t);
-        System.out.println("\nAfter service mutations: " + t);
+        // 2. Assign and escalate — each returns a NEW ticket
+        IncidentTicket assigned = service.assign(original, "agent@example.com");
+        IncidentTicket escalated = service.escalateToCritical(assigned);
 
-        // Demonstrate external mutation via leaked list reference
-        List<String> tags = t.getTags();
-        tags.add("HACKED_FROM_OUTSIDE");
-        System.out.println("\nAfter external tag mutation: " + t);
+        System.out.println("\nOriginal : " + original);
+        System.out.println("Assigned : " + assigned);
+        System.out.println("Escalated: " + escalated);
 
-        // Starter compiles; after refactor, you should redesign updates to create new objects instead.
+        // 3. Try to mutate the tags list from outside — should fail
+        List<String> tags = escalated.getTags();
+        try {
+            tags.add("HACKED_FROM_OUTSIDE");
+            System.out.println("\nBUG: Mutation succeeded!");
+        } catch (UnsupportedOperationException e) {
+            System.out.println("\nExternal tag mutation blocked!");
+        }
+
+        // 4. Original is truly unchanged
+        System.out.println("\nOriginal after all updates: " + original);
+
+        // 5. Validation demo — invalid ticket should throw
+        try {
+            new IncidentTicket.Builder("", "bad-email", "")
+                    .build();
+        } catch (IllegalArgumentException e) {
+            System.out.println("\nValidation caught: " + e.getMessage());
+        }
     }
 }

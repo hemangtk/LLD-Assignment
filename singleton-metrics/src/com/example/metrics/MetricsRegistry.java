@@ -7,38 +7,46 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * INTENTION: Global metrics registry (should be a Singleton).
+ * Thread-safe, lazy-initialized Singleton using the static holder idiom.
  *
- * CURRENT STATE (BROKEN ON PURPOSE):
- * - Constructor is public -> anyone can create instances.
- * - getInstance() is lazy but NOT thread-safe -> can create multiple instances.
- * - Reflection can call the constructor to create more instances.
- * - Serialization can create a new instance when deserialized.
- *
- * TODO (student):
- *  1) Make it a proper lazy, thread-safe singleton (private ctor)
- *  2) Block reflection-based multiple construction
- *  3) Preserve singleton on serialization (readResolve)
+ * Fixes:
+ *  1) Private constructor + static holder for lazy thread-safe init
+ *  2) Static flag blocks reflection-based second construction
+ *  3) readResolve() returns singleton on deserialization
  */
 public class MetricsRegistry implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private static MetricsRegistry INSTANCE; // BROKEN: not volatile, not thread-safe
     private final Map<String, Long> counters = new HashMap<>();
 
-    // BROKEN: should be private and should prevent second construction
-    public MetricsRegistry() {
-        // intentionally empty
+    private static boolean alreadyCreated = false;
+
+    // Private constructor — blocks direct instantiation and reflection
+    private MetricsRegistry() {
+        synchronized (MetricsRegistry.class) {
+            if (alreadyCreated) {
+                throw new IllegalStateException(
+                        "Cannot create another instance. Use getInstance().");
+            }
+            alreadyCreated = true;
+        }
     }
 
-    // BROKEN: racy lazy init; two threads can create two instances
+    // Static holder — JVM guarantees thread-safe lazy loading
+    private static class RegistryHolder {
+        private static final MetricsRegistry SINGLE_INSTANCE = new MetricsRegistry();
+    }
+
     public static MetricsRegistry getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new MetricsRegistry();
-        }
-        return INSTANCE;
+        return RegistryHolder.SINGLE_INSTANCE;
+    }
+
+    // Returns the singleton when deserialized instead of creating a new object
+    @Serial
+    private Object readResolve() {
+        return getInstance();
     }
 
     public synchronized void setCount(String key, long value) {
@@ -56,6 +64,4 @@ public class MetricsRegistry implements Serializable {
     public synchronized Map<String, Long> getAll() {
         return Collections.unmodifiableMap(new HashMap<>(counters));
     }
-
-    // TODO: implement readResolve() to preserve singleton on deserialization
 }
