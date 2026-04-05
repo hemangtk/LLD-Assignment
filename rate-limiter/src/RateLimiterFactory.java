@@ -1,7 +1,3 @@
-/**
- * Factory to create rate limiters by algorithm name.
- * Callers can switch algorithms without changing business logic.
- */
 public class RateLimiterFactory {
 
     public enum Algorithm {

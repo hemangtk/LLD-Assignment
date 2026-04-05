@@ -1,10 +1,6 @@
-/**
- * Demo: Pluggable Rate Limiting System for External Resource Usage.
- */
 public class Main {
     public static void main(String[] args) throws InterruptedException {
 
-        // === Demo 1: Fixed Window — tenant T1, max 5 calls per minute ===
         System.out.println("========================================");
         System.out.println("  FIXED WINDOW RATE LIMITER DEMO");
         System.out.println("========================================");
@@ -15,23 +11,19 @@ public class Main {
 
         InternalService service1 = new InternalService(fixedLimiter, new ExternalService());
 
-        // Requests that don't need external call — NOT rate limited
         System.out.println("\n--- Requests without external call (no rate limiting) ---");
         service1.handleRequest("T1", "get-cached-data", false);
         service1.handleRequest("T1", "get-local-config", false);
 
-        // Requests that need external call — rate limited
         System.out.println("\n--- Requests with external call (rate limited, limit=5/min) ---");
         for (int i = 1; i <= 7; i++) {
             String result = service1.handleRequest("T1", "external-query-" + i, true);
             System.out.println("  -> Result: " + result + "\n");
         }
 
-        // Different key (T2) has its own quota
         System.out.println("--- Different tenant T2 (separate quota) ---");
         service1.handleRequest("T2", "T2-external-query", true);
 
-        // === Demo 2: Sliding Window — switch algorithm, same business logic ===
         System.out.println("\n\n========================================");
         System.out.println("  SLIDING WINDOW RATE LIMITER DEMO");
         System.out.println("========================================");
@@ -47,7 +39,6 @@ public class Main {
             System.out.println("  -> Result: " + result + "\n");
         }
 
-        // === Demo 3: Thread safety — concurrent requests ===
         System.out.println("\n========================================");
         System.out.println("  CONCURRENCY TEST");
         System.out.println("========================================");

@@ -1,6 +1,3 @@
-/**
- * Simple modulo-based distribution: hash(key) % numberOfNodes.
- */
 public class ModuloDistributionStrategy implements DistributionStrategy {
     @Override
     public int getNodeIndex(String key, int totalNodes) {

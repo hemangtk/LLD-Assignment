@@ -1,12 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Distributed cache that routes keys across multiple CacheNodes.
- * - Pluggable distribution strategy (modulo, consistent hashing, etc.)
- * - Pluggable eviction policy per node (LRU, LFU, MRU, etc.)
- * - On cache miss: fetches from database, stores in cache, then returns
- */
 public class DistributedCache {
     private final List<CacheNode> nodes;
     private final DistributionStrategy distributionStrategy;
@@ -25,10 +19,6 @@ public class DistributedCache {
         }
     }
 
-    /**
-     * get(key): Returns value from cache if present.
-     * On cache miss, fetches from DB, caches it, then returns.
-     */
     public String get(String key) {
         int index = distributionStrategy.getNodeIndex(key, nodes.size());
         CacheNode node = nodes.get(index);
@@ -39,7 +29,6 @@ public class DistributedCache {
             return value;
         }
 
-        // Cache miss — fetch from database
         System.out.println("  Cache MISS [" + node.getNodeId() + "] key=" + key + " -> fetching from DB");
         value = database.fetch(key);
         if (value != null) {
@@ -48,9 +37,6 @@ public class DistributedCache {
         return value;
     }
 
-    /**
-     * put(key, value): Stores in the appropriate cache node + updates DB.
-     */
     public void put(String key, String value) {
         int index = distributionStrategy.getNodeIndex(key, nodes.size());
         CacheNode node = nodes.get(index);
@@ -59,7 +45,6 @@ public class DistributedCache {
         System.out.println("  PUT [" + node.getNodeId() + "] key=" + key + " value=" + value);
     }
 
-    /** Print status of all nodes. */
     public void printStatus() {
         System.out.println("--- Cache Status ---");
         for (CacheNode node : nodes) {

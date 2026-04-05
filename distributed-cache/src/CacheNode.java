@@ -1,9 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * A single cache node with limited capacity and pluggable eviction.
- */
 public class CacheNode {
     private final String nodeId;
     private final int capacity;
@@ -17,17 +14,14 @@ public class CacheNode {
         this.evictionPolicy = evictionPolicy;
     }
 
-    /** Get value from this node. Returns null if not present. */
     public String get(String key) {
         if (!store.containsKey(key)) return null;
         evictionPolicy.onAccess(key);
         return store.get(key);
     }
 
-    /** Put value into this node. Evicts if at capacity. */
     public void put(String key, String value) {
         if (store.containsKey(key)) {
-            // Update existing entry
             store.put(key, value);
             evictionPolicy.onAccess(key);
             return;

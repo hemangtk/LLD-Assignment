@@ -1,9 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Simple in-memory database for demonstration.
- */
 public class InMemoryDatabase implements Database {
     private final Map<String, String> data = new HashMap<>();
 
@@ -17,7 +14,6 @@ public class InMemoryDatabase implements Database {
         data.put(key, value);
     }
 
-    /** Pre-populate data for testing. */
     public void seed(String key, String value) {
         data.put(key, value);
     }

@@ -1,10 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Least Recently Used eviction policy.
- * Uses a doubly-linked list + HashMap for O(1) access and eviction.
- */
 public class LRUEvictionPolicy<K, V> implements EvictionPolicy<K, V> {
 
     private static class Node<K> {
@@ -13,8 +9,8 @@ public class LRUEvictionPolicy<K, V> implements EvictionPolicy<K, V> {
         Node(K key) { this.key = key; }
     }
 
-    private final Node<K> head; // most recent
-    private final Node<K> tail; // least recent
+    private final Node<K> head;
+    private final Node<K> tail;
     private final Map<K, Node<K>> nodeMap;
 
     public LRUEvictionPolicy() {
@@ -51,7 +47,7 @@ public class LRUEvictionPolicy<K, V> implements EvictionPolicy<K, V> {
 
     @Override
     public K evict() {
-        if (tail.prev == head) return null; // empty
+        if (tail.prev == head) return null;
         Node<K> lru = tail.prev;
         detach(lru);
         nodeMap.remove(lru.key);
